@@ -17,9 +17,9 @@
 // ----------------------------------------------------
 const url = 'https://randomuser.me/api/?results=12&inc=name,picture,email,location,cell,dob&nat=gb';
 const container = document.getElementById('gallery');
-const modalContainer = document.getElementsByClassName('modal-container')
+const modalContainer = document.getElementsByClassName('modal-container');
+const searchContainer = document.querySelector('.search-container');
 let fetchResponseData = [];
-
 
 // ----------------------------------------------------
 // FUNCTIONS
@@ -85,8 +85,10 @@ function generateHTML(data) {
         const phone = fetchResponseData.cell;
         const dob = fetchResponseData.dob.date;
 
+        
+
         container.innerHTML += `
-            <div class="modal-container modal-${index}">
+            <div id="modal-container" class="modal-container modal-${index}" data-index="${index}">
                 <div class="modal">
                     <button type="button" id="modal-close-btn" class="modal-close-btn"><strong>X</strong></button>
                     <div class="modal-info-container">
@@ -95,19 +97,28 @@ function generateHTML(data) {
                         <p class="modal-text">${email}</p>
                         <p class="modal-text cap">${locationCity}</p>
                         <hr>
-                        <p class="modal-text">${phone}</p>
+                        <p class="modal-text">${formatPhone(phone)}</p>
                         <p class="modal-text">${locationStreetNumber} ${locationStreetName}, ${locationCity}, ${locationState}, ${locationPostcode}</p>
-                        <p class="modal-text">Birthday: ${dob}</p>
+                        <p class="modal-text">Birthday: ${new Date(Date.parse(dob)).toLocaleDateString(navigator.language)}</p>
                     </div>
-                </div>
-                <div class="modal-btn-container">
-                    <button type="button" id="modal-prev" class="modal-prev btn">Prev</button>
-                    <button type="button" id="modal-next" class="modal-next btn">Next</button>
                 </div>
             </div>
         `;
     });
 };
+
+function formatPhone(number) {
+    let numberArray = number.split('-');
+    return `(${numberArray[0]}) ${numberArray[1]}-${numberArray[2]}`
+}
+
+
+function addSearchBar(searchContainer) {
+    searchContainer.innerHTML = `<form action="#" method="get">
+                                    <input type="search" id="search-input" class="search-input" placeholder="Search...">
+                                    <input type="submit" value="&#x1F50D;" id="search-submit" class="search-submit">
+                                </form>`;
+}
 
 // ----------------------------------------------------
 // Event listeners
@@ -139,9 +150,30 @@ document.addEventListener('click', event => {
     }
 });
 
+// search functionality
+document.addEventListener('click', (event) => {
+    // Is the thing we're clicking the search button
+    if (event.target.className === 'search-submit') {
+        // Selecting variables
+        const searchBarValue = document.getElementById('search-input').value.toLowerCase();
+        const cards = document.querySelectorAll('.card');
+        const name = document.getElementById('name');
+        // Loop over each employee card and display or hide
+        for (i = 0; i < cards.length; i++) {
+            let name = cards[i].textContent;        
+            if (name.toLowerCase().indexOf(searchBarValue) > -1) {
+                cards[i].style.display = '';
+            } else {
+                cards[i].style.display = 'none';
+            }
+        }
+    }
+});
 
 // ----------------------------------------------------
 // Initialise the page
 // ----------------------------------------------------
 fetchData(url)
     .then(response => generateHTML(response));
+
+addSearchBar(searchContainer);
